@@ -2,6 +2,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { Message } from '../models/index.js';
 import { requireAdmin } from '../middleware/index.js';
+import { sendContactEmails } from '../services/contactEmails.js';
 
 const router = Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -35,7 +36,9 @@ router.post('/', contactLimiter, async (req, res, next) => {
     if (Object.keys(errors).length) return res.status(400).json({ message: 'Please fix the highlighted fields.', errors });
 
     const { name, email, subject, budget, message } = body;
-    await Message.create({ name, email, subject, budget, message });
+    const saved = await Message.create({ name, email, subject, budget, message });
+    // Email alert + auto-reply run in the background; failures are logged, never shown to the visitor.
+    sendContactEmails(saved.toObject());
     res.status(201).json({ message: 'Thanks! Your message has been sent. I will get back to you within 24 hours.' });
   } catch (err) {
     next(err);
