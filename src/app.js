@@ -5,6 +5,7 @@ import portfolioRoutes from './routes/portfolio.js';
 import projectRoutes from './routes/projects.js';
 import contactRoutes from './routes/contact.js';
 import { notFound, errorHandler } from './middleware/index.js';
+import { mailProvider } from './config/mailer.js';
 
 const app = express();
 
@@ -24,7 +25,9 @@ app.use(helmet());
 app.use(cors({ origin: origins }));
 app.use(express.json({ limit: '20kb' }));
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+app.get('/api/health', (req, res) =>
+  res.json({ status: 'ok', email: mailProvider(), time: new Date().toISOString() })
+);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/contact', contactRoutes);

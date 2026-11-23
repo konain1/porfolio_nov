@@ -1,4 +1,4 @@
-import { getTransporter, mailConfig, mailEnabled } from '../config/mailer.js';
+import { mailConfig, mailEnabled, sendMail } from '../config/mailer.js';
 
 const esc = (s = '') =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -89,14 +89,13 @@ export function buildAutoReply(msg, ownerName) {
 export async function sendContactEmails(msg) {
   if (!mailEnabled()) return { skipped: true };
   const cfg = mailConfig();
-  const t = getTransporter();
-  const from = { name: cfg.fromName, address: cfg.user };
+  const from = { name: cfg.fromName, email: cfg.from };
 
   const jobs = [
-    t.sendMail({ from, to: cfg.to, replyTo: { name: oneLine(msg.name), address: msg.email }, ...buildOwnerEmail(msg) }),
+    sendMail({ from, to: { email: cfg.to }, replyTo: { name: oneLine(msg.name), email: msg.email }, ...buildOwnerEmail(msg) }),
   ];
   if (cfg.autoReply) {
-    jobs.push(t.sendMail({ from, to: msg.email, replyTo: cfg.to, ...buildAutoReply(msg, cfg.ownerName) }));
+    jobs.push(sendMail({ from, to: { email: msg.email }, replyTo: { email: cfg.to }, ...buildAutoReply(msg, cfg.ownerName) }));
   }
 
   const results = await Promise.allSettled(jobs);
