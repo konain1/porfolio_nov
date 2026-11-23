@@ -8,7 +8,16 @@ import { notFound, errorHandler } from './middleware/index.js';
 
 const app = express();
 
-const origins = (process.env.CLIENT_URL || 'http://localhost:5173').split(',').map((o) => o.trim());
+// Sites allowed to call this API from the browser. CLIENT_URL (comma-separated) adds more.
+const DEFAULT_ORIGINS = [
+  'https://porfolionovfrontend.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:4173',
+];
+const normalize = (o) => o.trim().replace(/\/+$/, ''); // "https://site.app/" → "https://site.app"
+const origins = [
+  ...new Set([...DEFAULT_ORIGINS, ...(process.env.CLIENT_URL || '').split(',').map(normalize).filter(Boolean)]),
+];
 
 app.set('trust proxy', 1);
 app.use(helmet());
