@@ -18,6 +18,8 @@ const DEFAULT_ORIGINS = [
 const normalize = (o) => o.trim().replace(/\/+$/, ''); // "https://site.app/" → "https://site.app"
 const origins = [
   ...new Set([...DEFAULT_ORIGINS, ...(process.env.CLIENT_URL || '').split(',').map(normalize).filter(Boolean)]),
+  // Vercel's per-deploy/branch URLs for this project, e.g. porfolionovfrontend-git-main-<team>.vercel.app
+  /^https:\/\/porfolionovfrontend-[a-z0-9-]+\.vercel\.app$/,
 ];
 
 app.set('trust proxy', 1);
